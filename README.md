@@ -32,3 +32,6 @@ This repository will be used as base to start a new terraform project or even us
 
 Set or GitHub Actions Workflows to be used when handling with Terraform deployment
 ### [Audit](.github/workflows/audit.yml)
+
+## Configuration
+```docker-compose up```

@@ -1,0 +1,52 @@
+version: '3'
+services:
+  # mysql:
+  #   build:
+  #     context: ./db
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - "data:/var/lib/mysql"
+  #     - "./init.sql:/docker-entrypoint-initdb.d/init.sql"
+  #   ports:
+  #     - 3306:3306
+  #   environment:
+  #     - MYSQL_USER=root
+  #     - MYSQL_ROOT_PASSWORD=Passw@rd1
+  #     - MYSQL_DATABASE=db
+
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    # build:
+    #   context: ./mongo
+    #   dockerfile: Dockerfile
+    environment:
+      MONGO_INITDB_DATABASE: mydb
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - "27017:27017"
+    networks:
+      - nestjs-network
+
+  backend:
+    command: npm run start:dev
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - .:/usr/app/
+      - /usr/app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    networks:
+      - nestjs-network
+    environment:
+      MONGODB_URI: mongodb://root:example@mongodb:27017/mydb
+      NODE_ENV: development
+
+networks:
+  nestjs-network:
+    driver: bridge
