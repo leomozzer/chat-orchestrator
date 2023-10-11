@@ -4,7 +4,8 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
-import { Users } from './users/users.entity';
+import { User } from './users/users.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { Users } from './users/users.entity';
       'host': 'mongodb',
       'port': 27017,
       'database': 'mydb',
-      'entities': [Users],
+      'entities': [User],
       'useUnifiedTopology': true,
       'synchronize': true,
       'logging': true,
@@ -24,6 +25,7 @@ import { Users } from './users/users.entity';
       authSource: 'admin',
     }),
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

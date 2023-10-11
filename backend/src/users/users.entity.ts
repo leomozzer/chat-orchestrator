@@ -1,22 +1,26 @@
 import { Entity, PrimaryGeneratedColumn, CreateDateColumn, Column, ObjectIdColumn, ObjectId } from "typeorm";
 
 @Entity()
-export class Users {
-    // @PrimaryGeneratedColumn('uuid')
-    // id: string;
+export class User {
 
     @ObjectIdColumn()
     _id: ObjectId;
 
-    @Column({ 'default': '' })
-    chatId: string
+    @Column()
+    username: string
 
-    @Column('boolean', { default: true })
-    active: boolean = true;
+    @Column()
+    password: string
 
-    @CreateDateColumn()
-    joinedAt: Date;
+    // @Column({ 'default': '' })
+    // chatId: string
 
-    @CreateDateColumn({ 'nullable': true })
-    leftAt: Date;
+    // @Column('boolean', { default: true })
+    // active: boolean = true;
+
+    // @CreateDateColumn()
+    // joinedAt: Date;
+
+    // @CreateDateColumn({ 'nullable': true })
+    // leftAt: Date;
 }
