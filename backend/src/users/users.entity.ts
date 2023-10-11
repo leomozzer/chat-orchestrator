@@ -12,15 +12,9 @@ export class User {
     @Column()
     password: string
 
-    // @Column({ 'default': '' })
-    // chatId: string
+    @CreateDateColumn()
+    createdAt: Date;
 
-    // @Column('boolean', { default: true })
-    // active: boolean = true;
-
-    // @CreateDateColumn()
-    // joinedAt: Date;
-
-    // @CreateDateColumn({ 'nullable': true })
-    // leftAt: Date;
+    @CreateDateColumn()
+    lastLogin: Date;
 }

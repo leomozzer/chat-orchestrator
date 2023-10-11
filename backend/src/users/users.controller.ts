@@ -12,6 +12,8 @@ export class UsersController {
         return this.usersService.getUsers()
     }
 
+    // TODO: Need to update this function to a better one
+    @Public()
     @Get('/new')
     CreateUser() {
         return this.usersService.NewUser()
