@@ -47,6 +47,7 @@ services:
       MONGODB_URI: mongodb://root:example@mongodb:27017/mydb
       NODE_ENV: development
       JWT_TOKEN: 'ABC123456'
+      JWT_TOKEN_EXPIRATION_SECONDS: '144000s'
 
 networks:
   nestjs-network:
