@@ -7,8 +7,6 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect
 } from '@nestjs/websockets';
-import { from, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
