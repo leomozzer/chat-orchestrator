@@ -9,13 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({
-  namespace: '/rooms', transports: ['websocket'], cors: {
-    origin: true,
-    methods: ['GET', 'POST'],
-    credentials: true,
-  }
-})
+@WebSocketGateway({ namespace: '/rooms', transports: ['websocket'] })
 export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;

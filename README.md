@@ -34,4 +34,6 @@ Set or GitHub Actions Workflows to be used when handling with Terraform deployme
 ### [Audit](.github/workflows/audit.yml)
 
 ## Configuration
-```docker-compose up```
+```
+docker-compose up
+```
