@@ -27,7 +27,8 @@ import { RoomsGateway } from './rooms/rooms.gateway';
       authSource: 'admin',
     }),
     UsersModule,
-    RoomsModule
+    RoomsModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],

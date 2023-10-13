@@ -17,7 +17,10 @@
         const messageInput = document.getElementById("message");
         const sendButton = document.getElementById("send");
 
-        const socket = io("http://localhost:3000/rooms"); // Replace with your NestJS server URL
+        const socket = io('http://localhost:3000/rooms', {
+            withCredentials: true,
+            transports: ['websocket']
+        }); // Replace with your NestJS server URL
         socket.on("connect", () => {
             console.log("Connected to Socket.IO");
         });
