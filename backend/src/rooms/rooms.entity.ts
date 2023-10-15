@@ -1,10 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, CreateDateColumn, Column, ObjectIdColumn, ObjectId } from "typeorm";
+import { Entity, CreateDateColumn, Column, ObjectIdColumn, ObjectId } from "typeorm";
+import { Message } from '../message/message.entity'
 
-export class Message {
-    message: string;
-    date: Date;
-    user: string;
-}
 @Entity()
 export class Room {
 
@@ -14,6 +10,6 @@ export class Room {
     @CreateDateColumn()
     createdAt: Date;
 
-    @Column(() => Message)
+    @Column({ 'default': [] })
     messages: Message[]
 }

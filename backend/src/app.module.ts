@@ -7,7 +7,8 @@ import { UsersModule } from './users/users.module';
 import { User } from './users/users.entity';
 import { AuthModule } from './auth/auth.module';
 import { RoomsModule } from './rooms/rooms.module';
-import { RoomsGateway } from './rooms/rooms.gateway';
+import { MessageModule } from './message/message.module';
+import { Room } from './rooms/rooms.entity';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { RoomsGateway } from './rooms/rooms.gateway';
       'host': 'mongodb',
       'port': 27017,
       'database': process.env.MONGO_INITDB_DATABASE,
-      'entities': [User],
+      'entities': [User, Room],
       'useUnifiedTopology': true,
       'synchronize': true,
       'logging': true,
@@ -28,7 +29,8 @@ import { RoomsGateway } from './rooms/rooms.gateway';
     }),
     UsersModule,
     RoomsModule,
-    AuthModule
+    AuthModule,
+    MessageModule
   ],
   controllers: [AppController],
   providers: [AppService],
