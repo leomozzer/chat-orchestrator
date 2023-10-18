@@ -22,4 +22,12 @@ export class AuthService {
             access_token: await this.jwtService.signAsync(payload)
         }
     }
+
+    async validateToken(token: string): Promise<any> {
+        try {
+            return this.jwtService.verify(token)
+        } catch (error) {
+            throw new UnauthorizedException()
+        }
+    }
 }

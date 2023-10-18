@@ -10,6 +10,9 @@ import {
 import { Server, Socket } from 'socket.io';
 import { RoomsService } from './rooms.service';
 import { v4 as uuidv4 } from 'uuid';
+import { UnauthorizedException, UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthService } from 'src/auth/auth.service';
 
 @WebSocketGateway({
   namespace: '/rooms',
@@ -21,15 +24,27 @@ import { v4 as uuidv4 } from 'uuid';
 })
 export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
-    private readonly roomService: RoomsService
+    private readonly roomService: RoomsService,
+    private readonly authService: AuthService
   ) { }
   @WebSocketServer()
   server: Server;
 
   async handleConnection(client: Socket) {
-    console.log(`Client ${client.id} connected on /rooms`)
-    const chatid = await this.roomService.create()
-    client.emit('connected', { 'id': uuidv4(), 'socket': client.id, 'room': chatid })
+    try {
+      console.log(`Client ${client.id} connected on /rooms`)
+      const token: string = client.handshake.query.token as string
+      console.log(token)
+      const user = this.authService.validateToken(token)
+      if (!user) {
+        throw new UnauthorizedException()
+      }
+      const chatid = await this.roomService.create()
+      client.emit('connected', { 'id': uuidv4(), 'socket': client.id, 'room': chatid })
+    } catch (error) {
+      client.emit('disconnected', 'Authentication failed')
+      client.disconnect()
+    }
   }
 
   async handleDisconnect(client: Socket) {
@@ -43,6 +58,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   //   return 'Hello world!';
   // }
 
+  @UseGuards(AuthGuard)
   @SubscribeMessage('new_message')
   async handleMessage(client: any, payload: any) {
     console.log(payload);

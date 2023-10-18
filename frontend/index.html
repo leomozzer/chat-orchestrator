@@ -23,7 +23,10 @@
 
         const socket = io('http://localhost:3000/rooms', {
             withCredentials: true,
-            transports: ['websocket']
+            transports: ['websocket'],
+            query: {
+                'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjNTBkNjBjZS04NWJlLTQ3NjAtOWVkYi0xNTBjODBkYzVjZTQiLCJ1c2VybmFtZSI6ImxlbyIsImlhdCI6MTY5NzU5NDQ0OSwiZXhwIjoxNjk3NzM4NDQ5fQ.hCR6tTME7DMqg1WOniTQdJuaYrwU4XxrSdoB_jUbyLE'
+            }
         }); // Replace with your NestJS server URL
         socket.on("connected", (payload) => {
             console.log("Connected to Socket.IO");
