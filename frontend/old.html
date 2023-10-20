@@ -1,0 +1,54 @@
+!DOCTYPE html>
+<html>
+
+<head>
+    <title>WebSocket Chat</title>
+</head>
+
+<body>
+    <h1>WebSocket Chat</h1>
+    <div id="messages"></div>
+    <input type="text" id="message" placeholder="Type a message" />
+    <button id="send">Send</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <script>
+        const messages = document.getElementById("messages");
+        const messageInput = document.getElementById("message");
+        const sendButton = document.getElementById("send");
+        let id = ''
+        let room = ''
+        let socketId = ''
+
+        const socket = io('http://localhost:3000/rooms', {
+            withCredentials: true,
+            transports: ['websocket']
+        }); // Replace with your NestJS server URL
+        socket.on("connected", (payload) => {
+            console.log("Connected to Socket.IO");
+            console.log(payload)
+            id = payload.id
+            room = payload.room
+            socketId = payload.socket
+            console.log(socketId)
+        });
+
+        socket.on("message", (message) => {
+            messages.innerHTML += `<p>${message}</p>`;
+        });
+
+        sendButton.addEventListener("click", () => {
+            const message = messageInput.value;
+            socket.emit("new_message", {
+                'text': message,
+                'origin': 'chat',
+                'id': id,
+                'room': room
+            });
+            messageInput.value = "";
+        });
+    </script>
+</body>
+
+</html>
