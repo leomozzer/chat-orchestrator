@@ -23,11 +23,11 @@ export class UsersService {
         }
     }
 
-    async NewUser() {
+    async create(username: string, password: string) {
         await this.usersRepository.save({
             '_id': uuidv4(),
-            'username': 'leo',
-            'password': '1234',
+            'username': username,
+            'password': password,
             'crecreatedAt': new Date().toISOString(),
             'lastLogin': new Date().toISOString()
         })

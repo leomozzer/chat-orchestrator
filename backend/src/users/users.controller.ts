@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, UseGuards, Request, Post, Body } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Public } from 'src/auth/decorators/public.decorator';
 
@@ -14,9 +14,10 @@ export class UsersController {
 
     // TODO: Need to update this function to a better one
     @Public()
-    @Get('/new')
-    CreateUser() {
-        return this.usersService.NewUser()
+    @Post('/new')
+    create(@Body() body: any) {
+        const { username, password } = body
+        return this.usersService.create(username, password)
     }
 
 }
