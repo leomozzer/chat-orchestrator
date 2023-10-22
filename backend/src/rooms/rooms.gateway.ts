@@ -33,14 +33,22 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleConnection(client: Socket) {
     try {
       console.log(`Client ${client.id} connected on /rooms`)
+      console.log(client.rooms)
       const token: string = client.handshake.query.token as string
       console.log(token)
-      const user = this.authService.validateToken(token)
+      const user = await this.authService.validateToken(token)
       if (!user) {
         throw new UnauthorizedException()
       }
-      const chatid = await this.roomService.create()
-      client.emit('connected', { 'id': uuidv4(), 'socket': client.id, 'room': chatid })
+      const type: string = client.handshake.query.type as string
+      if (type === 'new') {
+        const chatid = await this.roomService.create()
+        client.emit('connected', { 'user_id': user.sub, 'socket': client.id, 'room': chatid })
+      }
+      else {
+        const room: string = client.handshake.query.room as string
+        client.emit('connected', { 'user_id': user.sub, 'socket': client.id, 'room': room })
+      }
     } catch (error) {
       client.emit('disconnected', 'Authentication failed')
       client.disconnect()
@@ -62,8 +70,16 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('new_message')
   async handleMessage(client: any, payload: any) {
     console.log(payload);
-    const newMessage = await this.roomService.newMessage(payload.id, payload.text, payload.room)
-    client.emit('message', 'Hello from websocket server');
+    const newMessage = await this.roomService.newMessage(payload.user_id, payload.text, payload.room)
+    //client.emit('message', 'Hello from websocket server');
+    this.server.to(payload['room']).emit('Hello')
     return 'Hello world!';
+  }
+
+  @UseGuards(AuthGuard)
+  @SubscribeMessage('joinRoom')
+  async handleJoinRoom(client: Socket, roomId: string) {
+    // Add the user to the room
+    client.join(roomId);
   }
 }

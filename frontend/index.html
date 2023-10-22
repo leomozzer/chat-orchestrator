@@ -121,9 +121,62 @@
 
         </div>
 
+        <div id="roomPage" class="roomPage" style="display: none;">
+
+            <div class="content">
+
+                <h2>Rooms Page</h2>
+
+                <div class="form">
+
+                    <div class="inputBox">
+
+                        <input type="text" id="joinRoom" required> <i>Room Id</i>
+
+                    </div>
+                    <div class="inputBox">
+
+                        <input type="submit" onclick="joinRoom()" value="Join Room">
+
+                    </div>
+
+                    <div class="inputBox">
+
+                        <input type="submit" onclick="newRoom()" value="New Room">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="room" class="room" style="display: none;">
+            <div class="content">
+                <h2>Chat Room</h2>
+                <div class="chat-box">
+                    <div class="message-area" id="messageArea">
+                        <!-- Chat messages will be displayed here -->
+                    </div>
+                    <div class="inputBox">
+                        <input type="text" id="message" placeholder="Type a message">
+                        <button id="send">Send</button>
+                    </div>
+                </div>
+                <div class="inputBox">
+                    <button onclick="leaveRoom()">Leave Room</button>
+                </div>
+            </div>
+        </div>
+
     </section> <!-- partial -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
     <script>
-        var url = 'http://localhost:3000'
+        var url = 'http://localhost:3000';
+        var connected = false;
+        let token = ""
+        let socket;
         function login() {
             var username = document.getElementById("loginUsername").value;
             var password = document.getElementById("loginPassword").value;
@@ -145,8 +198,11 @@
                 console.log('Error: ', error)
             }).then(data => {
                 console.log(data)
+                token = data['access_token']
+                document.getElementById("registrationPage").style.display = "none";
+                document.getElementById("signinPage").style.display = "none";
+                document.getElementById("roomPage").style.display = "block";
             })
-
         }
         function register() {
             var username = document.getElementById("registerUsername").value;
@@ -178,12 +234,78 @@
             // document.getElementById("loggedInUsername").innerText = username;
         }
 
+        function newRoom() {
+            socket = io('http://localhost:3000/rooms', {
+                withCredentials: true,
+                transports: ['websocket'],
+                query: {
+                    'token': token,
+                    'type': 'new'
+                }
+            }); // Replace with your NestJS server URL
+
+            socket.on("connected", (payload) => {
+                console.log("Connected to Socket.IO");
+                console.log(payload)
+                user_id = payload.user_id
+                room = payload.room
+                socketId = payload.socket
+                console.log(socketId)
+                document.getElementById("roomPage").style.display = "none";
+                document.getElementById("room").style.display = "block";
+            });
+            socket.on("message", (message) => {
+                console.log(message);
+            });
+        }
+
+        function joinRoom() {
+            const room_id = document.getElementById("room_id");
+            socket = io('http://localhost:3000/rooms', {
+                withCredentials: true,
+                transports: ['websocket'],
+                query: {
+                    'token': token,
+                    'type': 'join',
+                    'room': room_id
+                }
+            }); // Replace with your NestJS server URL
+
+            socket.on("connected", (payload) => {
+                console.log("Connected to Room");
+                console.log(payload)
+                user_id = payload.user_id
+                room = payload.room
+                socketId = payload.socket
+                console.log(socketId)
+                document.getElementById("roomPage").style.display = "none";
+                document.getElementById("room").style.display = "block";
+            });
+            socket.on("message", (message) => {
+                console.log(message);
+            });
+        }
+
+        const sendButton = document.getElementById("send");
+        const messageInput = document.getElementById("message");
+        sendButton.addEventListener("click", () => {
+            const message = messageInput.value;
+            socket.emit("new_message", {
+                'text': message,
+                'origin': 'chat',
+                'user_id': user_id,
+                'room': room
+            });
+            messageInput.value = "";
+        });
+
         function showRegistrationPage() {
             console.log(document.getElementById("signinPage"))
             console.log(document.getElementById("registrationPage"))
             document.getElementById("signinPage").style.display = "none";
             document.getElementById("registrationPage").style.display = "block";
         }
+
     </script>
 
 </body>
