@@ -281,6 +281,11 @@
                 document.getElementById("roomPage").style.display = "none";
                 document.getElementById("room").style.display = "block";
             });
+
+            socket.emit('createRoom', {
+                room_id
+            })
+
             socket.on("message", (message) => {
                 console.log(message);
             });

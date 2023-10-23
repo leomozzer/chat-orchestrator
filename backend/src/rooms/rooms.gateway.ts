@@ -30,25 +30,27 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
+  private rooms = new Map<string, Set<Socket>>();
+
   async handleConnection(client: Socket) {
     try {
       console.log(`Client ${client.id} connected on /rooms`)
-      console.log(client.rooms)
+      console.log(this.rooms)
       const token: string = client.handshake.query.token as string
       console.log(token)
       const user = await this.authService.validateToken(token)
       if (!user) {
         throw new UnauthorizedException()
       }
-      const type: string = client.handshake.query.type as string
-      if (type === 'new') {
-        const chatid = await this.roomService.create()
-        client.emit('connected', { 'user_id': user.sub, 'socket': client.id, 'room': chatid })
-      }
-      else {
-        const room: string = client.handshake.query.room as string
-        client.emit('connected', { 'user_id': user.sub, 'socket': client.id, 'room': room })
-      }
+      client.emit('connected', { 'user_id': user.sub, 'socket': client.id })
+      // if (type === 'new') {
+      //   const chatid = await this.roomService.create()
+      //   client.emit('connected', { 'user_id': user.sub, 'socket': client.id, 'room': chatid })
+      // }
+      // else {
+      //   const room: string = client.handshake.query.room as string
+      //   client.emit('connected', { 'user_id': user.sub, 'socket': client.id, 'room': room })
+      // }
     } catch (error) {
       client.emit('disconnected', 'Authentication failed')
       client.disconnect()
@@ -57,6 +59,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleDisconnect(client: Socket) {
     console.log(`Client ${client.id} disconneted of /rooms`)
+    console.log(this.rooms)
   }
 
   // @SubscribeMessage('message')
@@ -81,5 +84,19 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleJoinRoom(client: Socket, roomId: string) {
     // Add the user to the room
     client.join(roomId);
+  }
+
+  @UseGuards(AuthGuard)
+  @SubscribeMessage('createRoom')
+  async handleCreateRoom(client: Socket, payload: { roomId: string }) {
+    // Add the user to the room
+    console.log('payload: ', payload)
+    if (this.rooms.get(payload['roomId'])) {
+      this.rooms.set(payload['roomId'], new Set())
+    }
+    this.rooms.get(payload['roomId']).add(client)
+    client.join(payload['roomId']);
+
+    this.server.to(client.id).emit('roomCreated')
   }
 }
