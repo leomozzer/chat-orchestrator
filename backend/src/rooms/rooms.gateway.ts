@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { AuthService } from 'src/auth/auth.service';
+import { ObjectId } from 'mongodb';
 
 @WebSocketGateway({
   namespace: '/rooms',
@@ -42,15 +43,18 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (!user) {
         throw new UnauthorizedException()
       }
-      client.emit('connected', { 'user_id': user.sub, 'socket': client.id })
-      // if (type === 'new') {
-      //   const chatid = await this.roomService.create()
-      //   client.emit('connected', { 'user_id': user.sub, 'socket': client.id, 'room': chatid })
-      // }
-      // else {
-      //   const room: string = client.handshake.query.room as string
-      //   client.emit('connected', { 'user_id': user.sub, 'socket': client.id, 'room': room })
-      // }
+      //client.emit('connected', { 'user_id': user.sub, 'socket': client.id })
+      const type: string = client.handshake.query.type as string
+      if (type === 'new') {
+        const chatid = await this.roomService.create()
+        await this.roomService.join(user.sub, chatid, client.id)
+        client.emit('connected', { 'user_id': user.sub, 'socket': client.id, 'room': chatid })
+      }
+      else {
+        const room: string = client.handshake.query.room as string
+        await this.roomService.join(user.sub, new ObjectId(room), client.id)
+        client.emit('connected', { 'user_id': user.sub, 'socket': client.id, 'room': room })
+      }
     } catch (error) {
       client.emit('disconnected', 'Authentication failed')
       client.disconnect()
@@ -59,6 +63,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleDisconnect(client: Socket) {
     console.log(`Client ${client.id} disconneted of /rooms`)
+    await this.roomService.left(client.id)
     console.log(this.rooms)
   }
 
