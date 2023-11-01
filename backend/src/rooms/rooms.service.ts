@@ -45,12 +45,12 @@ export class RoomsService {
             if (!rooms) {
                 throw "Chat not found"
             }
-            rooms.messages = [{
+            rooms.messages = rooms.messages.concat({
                 '_id': new ObjectId(),
                 'sentAt': new Date(),
                 'user': user,
                 'text': text
-            }]
+            })
 
             await this.roomRepository.update({ '_id': chatId }, { 'messages': rooms.messages })
         } catch (error) {
