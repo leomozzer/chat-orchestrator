@@ -134,15 +134,10 @@
                         <input type="text" id="joinRoom" required> <i>Room Id</i>
 
                     </div>
-                    <div class="inputBox">
-
-                        <input type="submit" onclick="joinRoom()" value="Join Room">
-
-                    </div>
 
                     <div class="inputBox">
 
-                        <input type="submit" onclick="newRoom()" value="New Room">
+                        <input type="submit" onclick="joinRoom()" value="New Room">
 
                     </div>
 
@@ -157,7 +152,7 @@
                 <h2>Chat Room</h2>
                 <div class="chat-box">
                     <div class="message-area" id="messageArea">
-                        <!-- Chat messages will be displayed here -->
+                        <div id="messages"></div>
                     </div>
                     <div class="inputBox">
                         <input type="text" id="message" placeholder="Type a message">
@@ -234,7 +229,7 @@
             // document.getElementById("loggedInUsername").innerText = username;
         }
 
-        function newRoom() {
+        function joinRoom() {
             socket = io('http://localhost:3000/rooms', {
                 withCredentials: true,
                 transports: ['websocket'],
@@ -248,8 +243,8 @@
                 console.log("Connected to Socket.IO");
                 console.log(payload)
                 user_id = payload.user_id
-                room = payload.room
                 socketId = payload.socket
+                room = payload.room
                 console.log(socketId)
                 document.getElementById("roomPage").style.display = "none";
                 document.getElementById("room").style.display = "block";
@@ -257,48 +252,21 @@
             socket.on("message", (message) => {
                 console.log(message);
             });
-        }
-
-        function joinRoom() {
-            const room_id = document.getElementById("room_id");
-            socket = io('http://localhost:3000/rooms', {
-                withCredentials: true,
-                transports: ['websocket'],
-                query: {
-                    'token': token,
-                    'type': 'join',
-                    'room': room_id
-                }
-            }); // Replace with your NestJS server URL
-
-            socket.on("connected", (payload) => {
-                console.log("Connected to Room");
-                console.log(payload)
-                user_id = payload.user_id
-                room = payload.room
-                socketId = payload.socket
-                console.log(socketId)
-                document.getElementById("roomPage").style.display = "none";
-                document.getElementById("room").style.display = "block";
-            });
-
-            socket.emit('createRoom', {
-                room_id
-            })
-
-            socket.on("message", (message) => {
+            socket.on("serverMessage", (payload) => {
                 console.log(message);
+                messages.innerHTML += `<div class="message my-message">${payload.text}</div>`
             });
         }
-
+        const messages = document.getElementById("messages");
         const sendButton = document.getElementById("send");
         const messageInput = document.getElementById("message");
         sendButton.addEventListener("click", () => {
             const message = messageInput.value;
-            socket.emit("new_message", {
+            socket.emit("clientMessage", {
                 'text': message,
                 'origin': 'chat',
-                'user_id': user_id,
+                'userId': user_id,
+                'clientId': socketId,
                 'room': room
             });
             messageInput.value = "";
