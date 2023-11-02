@@ -116,7 +116,7 @@ jobs:
 
       - uses: Azure/docker-login@v1
         with:
-          login-server: mycontainer.azurecr.io
+          login-server: acrleomozzer.azurecr.io
           username: ${{ steps.acrSecrets.outputs.ACR-USERNAME }}
           password: ${{ steps.acrSecrets.outputs.ACR-PASSWORD }}
 
