@@ -4,7 +4,7 @@ on:
     branches:
       - main
     paths:
-      - "./terraform-live/acg/**.tf"
+      - "./terraform-live/acg/"
       - ".github/workflows/terraform-deploy-acg.yml"
 
 env:
