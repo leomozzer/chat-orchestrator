@@ -36,6 +36,12 @@ resource "azurerm_container_group" "mongodb" {
     }
   }
 
+  diagnostics {
+    log_analytics {
+      workspace_id  = data.azurerm_log_analytics_workspace.law.id
+      workspace_key = data.azurerm_log_analytics_workspace.law.primary_shared_key
+    }
+  }
   tags = {
     environment = "development"
   }
@@ -56,18 +62,18 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-resource "azurerm_private_endpoint" "mongo" {
-  name                = local.private_endpoint_mongo
-  location            = var.location
-  resource_group_name = azurerm_resource_group.rg.name
-  subnet_id           = azurerm_subnet.subnet.id
+# resource "azurerm_private_endpoint" "mongo" {
+#   name                = local.private_endpoint_mongo
+#   location            = var.location
+#   resource_group_name = azurerm_resource_group.rg.name
+#   subnet_id           = azurerm_subnet.subnet.id
 
-  private_service_connection {
-    name                           = "mongo-connection"
-    private_connection_resource_id = azurerm_container_group.mongodb.id
-    is_manual_connection           = false
-  }
-}
+#   private_service_connection {
+#     name                           = "mongo-connection"
+#     private_connection_resource_id = azurerm_container_group.mongodb.id
+#     is_manual_connection           = false
+#   }
+# }
 
 # resource "azurerm_network_security_rule" "network_security_rule" {
 #   name                         = var.name

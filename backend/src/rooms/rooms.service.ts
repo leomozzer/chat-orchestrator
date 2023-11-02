@@ -18,7 +18,8 @@ export class RoomsService {
             const id = uuidv4()
             await this.roomRepository.save({
                 '_id': id,
-                'createdAt': new Date().toISOString()
+                'createdAt': new Date().toISOString(),
+                'messages': []
             })
             return id
         } catch (error) {
@@ -44,6 +45,9 @@ export class RoomsService {
             })
             if (!rooms) {
                 throw "Chat not found"
+            }
+            if (!rooms.messages) {
+                rooms.messages = []
             }
             rooms.messages = rooms.messages.concat({
                 '_id': new ObjectId(),
