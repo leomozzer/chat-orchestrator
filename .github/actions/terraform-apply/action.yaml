@@ -1,14 +1,15 @@
-name: 'Terraform Apply'
+name: "Terraform Apply"
 description: "Performs the terraform apply"
 
 inputs:
   AZURE_CLI_VERSION:
     description: "Azure cli version"
     required: false
-    default: 'latest'
+    default: "latest"
   WORKING_DIR:
     description: "working directory"
-    required: true
+    required: false
+    default: "./terraform-live"
   AZURE_SP:
     description: "Credentials of the Azure SP"
     required: true
@@ -55,6 +56,5 @@ runs:
 
     - name: Terraform Apply
       shell: bash
-      run:
-        terraform apply -lock-timeout=10m "${{ inputs.STAGE }}.plan"
-      working-directory: ${{ inputs.WORKING_DIR }}/terraform-live
+      run: terraform apply -lock-timeout=10m "${{ inputs.STAGE }}.plan"
+      working-directory: ${{ inputs.WORKING_DIR }}

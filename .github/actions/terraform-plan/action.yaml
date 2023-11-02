@@ -43,17 +43,17 @@ runs:
       run: terraform fmt -check -recursive -diff ${{ inputs.WORKING_DIR}}
       continue-on-error: true
       shell: bash
-      working-directory: ${{ inputs.WORKING_DIR }}
+      working-directory: ./terraform-live
 
     - name: Ensure ${{ inputs.STAGE }}.tfvars exists
       shell: bash
       run: |
-        touch ${{ inputs.WORKING_DIR }}/${{ inputs.STAGE }}.tfvars
+        touch ./terraform-live/${{ inputs.WORKING_DIR }}/${{ inputs.STAGE }}.tfvars
 
     - name: Create backend file
       shell: pwsh
       run: |
-        New-Item -Path "${{ inputs.WORKING_DIR }}" -Name "backend.tf" -Value "terraform {`r`nbackend `"azurerm`" {`r`nresource_group_name = `"${{ inputs.RESOURCE_GROUP_NAME }}`"`r`nstorage_account_name = `"${{ inputs.STORAGE_ACCOUNT_NAME }}`"`r`ncontainer_name = `"${{ inputs.CONTAINER_NAME }}`"`r`nkey = `"${{ inputs.STATE_FILE }}`"`r`n}`r`n}`r`n"
+        New-Item -Path "./terraform-live/${{ inputs.WORKING_DIR }}" -Name "backend.tf" -Value "terraform {`r`nbackend `"azurerm`" {`r`nresource_group_name = `"${{ inputs.RESOURCE_GROUP_NAME }}`"`r`nstorage_account_name = `"${{ inputs.STORAGE_ACCOUNT_NAME }}`"`r`ncontainer_name = `"${{ inputs.CONTAINER_NAME }}`"`r`nkey = `"${{ inputs.STATE_FILE }}`"`r`n}`r`n}`r`n"
 
     # - name: Create Provider file
     #   shell: pwsh
@@ -64,14 +64,14 @@ runs:
       id: init
       run: terraform init -reconfigure
       shell: bash
-      working-directory: ${{ inputs.WORKING_DIR }}
+      working-directory: ./terraform-live/${{ inputs.WORKING_DIR }}
 
     - name: Terraform Plan
       id: plan
       run: terraform plan -var-file="${{ inputs.STAGE }}.tfvars" -lock-timeout=10m -out=${{ inputs.STAGE }}.plan
       continue-on-error: false
       shell: bash
-      working-directory: ${{ inputs.WORKING_DIR }}
+      working-directory: ./terraform-live/${{ inputs.WORKING_DIR }}
 
     # - name: TfSec on modules
     #   shell: bash
@@ -86,7 +86,7 @@ runs:
         command: c
         cwd: "./terraform-live"
         files: |
-          ./acr
+          ./${{ inputs.WORKING_DIR }}
         outPath: terraform-live-${{ inputs.STAGE }}-${{ github.run_number }}.tar
 
     - name: Copy ${{ inputs.STAGE }} live plan to Storage
