@@ -86,7 +86,7 @@ runs:
         command: c
         cwd: ${{ inputs.WORKING_DIR }}
         files: |
-          ./${{ inputs.WORKING_DIR }}
+          ./
         outPath: terraform-live-${{ inputs.STAGE }}-${{ github.run_number }}.tar
 
     - name: Copy ${{ inputs.STAGE }} live plan to Storage
