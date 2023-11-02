@@ -22,7 +22,7 @@ resource "azurerm_container_group" "mongodb" {
     name   = "mongodb"
     image  = "mongo:latest"
     cpu    = "0.5"
-    memory = "1.5Gi"
+    memory = "1.5"
 
     environment_variables = {
       MONGO_INITDB_ROOT_USERNAME = "root"
@@ -59,7 +59,7 @@ resource "azurerm_subnet" "subnet" {
   name                 = local.snet_name
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.id
-  address_prefixes     = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_private_endpoint" "mongo" {
