@@ -54,7 +54,7 @@ jobs:
           RESOURCE_GROUP_NAME: "acg-${{ matrix.stage }}-rg"
           RESOURCE_GROUP_LOCATION: "eastus"
           TAGS: '"UseCase=Terraform" "Stage=${{ github.job }}" "Deployed=GitHub Actions" Repository=${{ steps.split.outputs._1 }} "RunNumber=${{ github.run_number }}"'
-          STORAGE_ACCOUNT_NAME: "stacacr${{ matrix.stage }}"
+          STORAGE_ACCOUNT_NAME: "stacacg${{ matrix.stage }}"
 
       - uses: "./.github/actions/terraform-plan"
         with:
