@@ -3,9 +3,9 @@ services:
   mongodb:
     container_name: mongodb
     build:
-      context: ./mongo
+      context: ./mongodb
       dockerfile: Dockerfile
-    image: acrleomozzer.azurecr.io/mongo:latest
+    image: acrleomozzer.azurecr.io/mongodb:latest
     environment:
       MONGO_INITDB_DATABASE: mydb
       MONGO_INITDB_ROOT_USERNAME: root
@@ -13,26 +13,24 @@ services:
     ports:
       - "27017:27017"
 
-  # backend:
-  #   command: npm run start:dev
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - .:/usr/app/
-  #     - /usr/app/node_modules
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - mongodb
-  #   environment:
-  #     #MONGODB_URI: mongodb://root:example@mongodb:27017/mydb
-  #     MONGO_INITDB_DATABASE: mydb
-  #     MONGO_INITDB_ROOT_USERNAME: root
-  #     MONGO_INITDB_ROOT_PASSWORD: example
-  #     NODE_ENV: development
-  #     JWT_TOKEN: 'ABC123456'
-  #     JWT_TOKEN_EXPIRATION_SECONDS: '144000s'
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    volumes:
+      - .:/usr/app/
+      - /usr/app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_INITDB_DATABASE: mydb
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      NODE_ENV: development
+      JWT_TOKEN: 'ABC123456'
+      JWT_TOKEN_EXPIRATION_SECONDS: '144000s'
 
   # frontend:
   #   build:

@@ -4,7 +4,8 @@ on:
     branches:
       - main
     paths:
-      - "./mongo"
+      - "./mongodb"
+      - "./backend"
       - ".github/workflows/docker-build-deploy.yml"
       - "./docker-compose.yml"
 
