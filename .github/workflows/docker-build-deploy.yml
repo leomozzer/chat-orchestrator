@@ -6,6 +6,7 @@ on:
     paths:
       - "./mongo"
       - ".github/workflows/docker-build-deploy.yml"
+      - "./docker-compose.yml"
 
 env:
   ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
