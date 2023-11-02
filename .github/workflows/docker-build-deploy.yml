@@ -1,0 +1,49 @@
+name: "Docker Build & Deploy ACR"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "./mongo"
+      - ".github/workflows/docker-build-deploy.yml"
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+jobs:
+  build-and-deploy:
+    name: "Docker Build & Deploy"
+    strategy:
+      matrix:
+        stage: [dev]
+    runs-on: "ubuntu-latest"
+    environment: ${{ matrix.stage }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SP }}
+
+      - uses: Azure/get-keyvault-secrets@v1
+        with:
+          keyvault: kvacrleomozzer
+          secrets: "ACR-USERNAME, ACR-PASSWORD"
+        id: acrSecrets
+
+      - uses: Azure/docker-login@v1
+        with:
+          login-server: acrleomozzer.azurecr.io
+          username: ${{ steps.acrSecrets.outputs.ACR-USERNAME }}
+          password: ${{ steps.acrSecrets.outputs.ACR-PASSWORD }}
+
+      - run: |
+          docker-compose -f docker-compose.yml build
+          docker-compose -f docker-compose.yml push

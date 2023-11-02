@@ -88,38 +88,3 @@ jobs:
           AZURE_SP: ${{ secrets.AZURE_SP }}
           STORAGE_ACCOUNT_NAME: "stacacr${{ matrix.stage }}"
           STAGE: "${{ matrix.stage }}"
-
-  build-and-deploy:
-    name: "Docker Build & Deploy"
-    needs: apply
-    strategy:
-      matrix:
-        stage: [dev]
-    runs-on: "ubuntu-latest"
-    environment: ${{ matrix.stage }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_SP }}
-
-      - uses: Azure/get-keyvault-secrets@v1
-        with:
-          keyvault: kvacrleomozzer
-          secrets: "ACR-USERNAME, ACR-PASSWORD"
-        id: acrSecrets
-
-      - uses: Azure/docker-login@v1
-        with:
-          login-server: acrleomozzer.azurecr.io
-          username: ${{ steps.acrSecrets.outputs.ACR-USERNAME }}
-          password: ${{ steps.acrSecrets.outputs.ACR-PASSWORD }}
-
-      - run: |
-          docker-compose -f docker-compose.yml build
-          docker-compose -f docker-compose.yml push
