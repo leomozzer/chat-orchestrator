@@ -5,7 +5,7 @@ on:
       - main
     paths:
       - "./mongodb"
-      - "./backend"
+      - "./backend/"
       - ".github/workflows/docker-build-deploy.yml"
       - "./docker-compose.yml"
 
