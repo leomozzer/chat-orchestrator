@@ -36,12 +36,12 @@ resource "azurerm_container_group" "mongodb" {
     }
   }
 
-  diagnostics {
-    log_analytics {
-      workspace_id  = data.azurerm_log_analytics_workspace.law.workspace_id
-      workspace_key = data.azurerm_log_analytics_workspace.law.primary_shared_key
-    }
-  }
+  # diagnostics {
+  #   log_analytics {
+  #     workspace_id  = data.azurerm_log_analytics_workspace.law.workspace_id
+  #     workspace_key = data.azurerm_log_analytics_workspace.law.primary_shared_key
+  #   }
+  # }
   tags = {
     environment = "development"
   }
