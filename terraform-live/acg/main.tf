@@ -12,6 +12,35 @@ resource "azurerm_resource_group" "rg" {
 #   sku                 = var.sku
 # }
 
+resource "azurerm_container_group" "mongodb" {
+  name                = "mongodb-container"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location # Choose your desired Azure region
+  os_type             = "Linux"
+
+  container {
+    name   = "mongodb"
+    image  = "mongo:latest"
+    cpu    = "0.5"
+    memory = "1.5Gi"
+
+    environment_variables = {
+      MONGO_INITDB_ROOT_USERNAME = "root"
+      MONGO_INITDB_ROOT_PASSWORD = "example"
+      MONGO_INITDB_DATABASE      = "mydb"
+    }
+
+    ports {
+      port     = 27017
+      protocol = "TCP"
+    }
+  }
+
+  tags = {
+    environment = "development"
+  }
+}
+
 resource "azurerm_virtual_network" "vnet" {
   name                = local.vnet_name
   location            = var.location
@@ -19,15 +48,30 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = ["10.0.0.0/16"]
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
 
-  subnet {
-    name           = "default" #acgsubnet
-    address_prefix = "10.0.1.0/24"
-  }
-
   lifecycle {
     ignore_changes = [
       subnet
     ]
+  }
+}
+
+resource "azurerm_subnet" "subnet" {
+  name                 = local.snet_name
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.id
+  address_prefixes     = "10.0.1.0/24"
+}
+
+resource "azurerm_private_endpoint" "mongo" {
+  name                = local.private_endpoint_mongo
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.subnet.id
+
+  private_service_connection {
+    name                           = "mongo-connection"
+    private_connection_resource_id = azurerm_container_group.mongodb.id
+    is_manual_connection           = false
   }
 }
 
