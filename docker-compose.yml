@@ -17,6 +17,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
+    image: acrleomozzer.azurecr.io/backend:latest
     volumes:
       - .:/usr/app/
       - /usr/app/node_modules
