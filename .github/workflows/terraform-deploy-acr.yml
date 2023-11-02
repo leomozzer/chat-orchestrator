@@ -88,3 +88,23 @@ jobs:
           AZURE_SP: ${{ secrets.AZURE_SP }}
           STORAGE_ACCOUNT_NAME: "stacacr${{ matrix.stage }}"
           STAGE: "${{ matrix.stage }}"
+
+  build-and-deploy:
+    name: "Docker Build & Deploy"
+    needs: apply
+    strategy:
+      matrix:
+        stage: [dev]
+    runs-on: "ubuntu-latest"
+    environment: ${{ matrix.stage }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: "./.github/actions/azure-container-registry"
+        with:
+          WORKING_DIR: "./"
+          AZURE_SP: ${{ secrets.AZURE_SP }}
+          KEY_VAULT_NAME: "kvacrleomozzer"

@@ -1,0 +1,36 @@
+name: "Docker Build & Deploy ACR"
+description: "Performs the terraform plan"
+
+inputs:
+  AZURE_CLI_VERSION:
+    description: "Azure cli version"
+    required: false
+    default: "latest"
+  WORKING_DIR:
+    description: "working directory"
+    required: true
+  AZURE_SP:
+    description: "Credentials of the Azure SP"
+    required: true
+  KEY_VAULT_NAME:
+    description: "Name of the Key Vault"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ inputs.AZURE_SP }}
+
+    - uses: Azure/get-keyvault-secrets@v1
+      with:
+        keyvault: ${{ inputs.KEY_VAULT_NAME }}
+        secrets: "ACR-USERNAME, ACR-PASSWORD"
+      id: acrSecrets
+    - uses: Azure/docker-login@v1
+      with:
+        login-server: mycontainer.azurecr.io
+        username: ${{ steps.acrSecrets.outputs.ACR-USERNAME }}
+        password: ${{ steps.acrSecrets.outputs.ACR-PASSWORD }}
