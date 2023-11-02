@@ -9,39 +9,30 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: example
     ports:
       - "27017:27017"
-    networks:
-      - nestjs-network
 
-  backend:
-    command: npm run start:dev
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    volumes:
-      - .:/usr/app/
-      - /usr/app/node_modules
-    ports:
-      - "3000:3000"
-    depends_on:
-      - mongodb
-    networks:
-      - nestjs-network
-    environment:
-      #MONGODB_URI: mongodb://root:example@mongodb:27017/mydb
-      MONGO_INITDB_DATABASE: mydb
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-      NODE_ENV: development
-      JWT_TOKEN: 'ABC123456'
-      JWT_TOKEN_EXPIRATION_SECONDS: '144000s'
+  # backend:
+  #   command: npm run start:dev
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - .:/usr/app/
+  #     - /usr/app/node_modules
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - mongodb
+  #   environment:
+  #     #MONGODB_URI: mongodb://root:example@mongodb:27017/mydb
+  #     MONGO_INITDB_DATABASE: mydb
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: example
+  #     NODE_ENV: development
+  #     JWT_TOKEN: 'ABC123456'
+  #     JWT_TOKEN_EXPIRATION_SECONDS: '144000s'
 
-  frontend:
-    build:
-      context: ./frontend
-    ports:
-      - "80:80"
-    networks:
-      - nestjs-network
-
-networks:
-  nestjs-network:
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #   ports:
+  #     - "80:80"

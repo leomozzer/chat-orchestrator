@@ -103,8 +103,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: "./.github/actions/azure-container-registry"
+      - name: Azure Login
+        uses: azure/login@v1
         with:
-          WORKING_DIR: "./"
-          AZURE_SP: ${{ secrets.AZURE_SP }}
-          KEY_VAULT_NAME: "kvacrleomozzer"
+          creds: ${{ secrets.AZURE_SP }}
+
+      - uses: Azure/get-keyvault-secrets@v1
+        with:
+          keyvault: kvacrleomozzer
+          secrets: "ACR-USERNAME, ACR-PASSWORD"
+        id: acrSecrets
+
+      - uses: Azure/docker-login@v1
+        with:
+          login-server: mycontainer.azurecr.io
+          username: ${{ steps.acrSecrets.outputs.ACR-USERNAME }}
+          password: ${{ steps.acrSecrets.outputs.ACR-PASSWORD }}
+
+      - run: |
+          docker-compose -f docker-compose.yml build
+          docker-compose -f docker-compose.yml push
