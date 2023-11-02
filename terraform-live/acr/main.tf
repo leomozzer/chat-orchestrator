@@ -31,6 +31,11 @@ resource "azurerm_key_vault" "keyvault" {
       "Recover"
     ]
   }
+
+  network_acls {
+    bypass         = "AzureServices"
+    default_action = "Deny"
+  }
 }
 
 resource "azurerm_key_vault_secret" "acr_username" {
