@@ -84,9 +84,9 @@ runs:
       id: compress-terraform-live
       with:
         command: c
-        cwd: ${{ inputs.WORKING_DIR }}
+        cwd: "./terraform-live"
         files: |
-          ./
+          ./acr
         outPath: terraform-live-${{ inputs.STAGE }}-${{ github.run_number }}.tar
 
     - name: Copy ${{ inputs.STAGE }} live plan to Storage

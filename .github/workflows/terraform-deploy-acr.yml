@@ -4,7 +4,7 @@ on:
     branches:
       - main
     paths:
-      - "./terraform-live/acr/**.tf"
+      - "./terraform-live/acr/"
       - ".github/workflows/terraform-deploy-acr.yml"
 
 env:
