@@ -66,25 +66,25 @@ jobs:
           STATE_FILE: "acr.tfstate"
           STAGE: "${{ matrix.stage }}"
 
-  # apply:
-  #   name: "Apply Job"
-  #   needs: plan
-  #   strategy:
-  #     matrix:
-  #       stage: [dev]
-  #   runs-on: ubuntu-latest
-  #   environment: ${{ matrix.stage }}
-  #   defaults:
-  #    run:
-  #      shell: bash
-  #      # We keep Terraform files in the terraform directory.
-  #      working-directory: ./terraform-live
-  #   steps:
-  #   - uses: actions/checkout@v3
+  apply:
+    name: "Apply Job"
+    needs: plan
+    strategy:
+      matrix:
+        stage: [dev]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.stage }}
+    defaults:
+      run:
+        shell: bash
+        # We keep Terraform files in the terraform directory.
+        working-directory: ./terraform-live
+    steps:
+      - uses: actions/checkout@v3
 
-  #   - uses: "./.github/actions/terraform-apply"
-  #     with:
-  #       WORKING_DIR: "."
-  #       AZURE_SP: ${{ secrets.AZURE_SP }}
-  #       STORAGE_ACCOUNT_NAME: "stacpolicyascode${{ matrix.stage }}"
-  #       STAGE: "${{ matrix.stage }}"
+      - uses: "./.github/actions/terraform-apply"
+        with:
+          WORKING_DIR: "."
+          AZURE_SP: ${{ secrets.AZURE_SP }}
+          STORAGE_ACCOUNT_NAME: "stacacr${{ matrix.stage }}"
+          STAGE: "${{ matrix.stage }}"
