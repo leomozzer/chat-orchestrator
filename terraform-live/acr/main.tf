@@ -32,10 +32,10 @@ resource "azurerm_key_vault" "keyvault" {
     ]
   }
 
-  network_acls {
-    bypass         = "AzureServices"
-    default_action = "Deny"
-  }
+  # network_acls {
+  #   bypass         = "AzureServices"
+  #   default_action = "Deny"
+  # }
 }
 
 resource "azurerm_key_vault_secret" "acr_username" {
