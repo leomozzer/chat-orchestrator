@@ -6,6 +6,7 @@ on:
     paths:
       - "./terraform-live/acr/**.tf"
       - ".github/workflows/terraform-deploy-acr.yml"
+  workflow_dispatch:
 
 env:
   ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}

@@ -8,6 +8,7 @@ on:
       - "./backend/"
       - ".github/workflows/docker-build-deploy.yml"
       - "./docker-compose.yml"
+  workflow_dispatch:
 
 env:
   ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}

@@ -6,6 +6,7 @@ on:
     paths:
       - "./terraform-live/acg/"
       - ".github/workflows/terraform-deploy-acg.yml"
+  workflow_dispatch:
 
 env:
   ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
