@@ -58,7 +58,7 @@ jobs:
 
       - uses: "./.github/actions/terraform-plan"
         with:
-          WORKING_DIR: "acr"
+          WORKING_DIR: "acg"
           AZURE_SP: ${{ secrets.AZURE_SP }}
           RESOURCE_GROUP_NAME: "acg-${{ matrix.stage }}-rg"
           STORAGE_ACCOUNT_NAME: "stacacg${{ matrix.stage }}"
@@ -86,5 +86,5 @@ jobs:
         with:
           WORKING_DIR: "./acg"
           AZURE_SP: ${{ secrets.AZURE_SP }}
-          STORAGE_ACCOUNT_NAME: "stacacr${{ matrix.stage }}"
+          STORAGE_ACCOUNT_NAME: "stacacg${{ matrix.stage }}"
           STAGE: "${{ matrix.stage }}"
