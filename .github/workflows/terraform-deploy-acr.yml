@@ -1,0 +1,90 @@
+name: "Terraform Deploy ACR"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform-live/acr/**"
+      - ".github/workflows/terraform-deploy-acr.yml"
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+jobs:
+  tfsec:
+    name: "Aquasec TfSec"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v3
+
+      - name: TfSec on terraform files
+        run: |
+          docker pull aquasec/tfsec:latest
+          docker run --rm -v "$(pwd)/terraform-live/acr:/src" aquasec/tfsec ./src
+          docker rmi "aquasec/tfsec:latest" -f | true
+
+  plan:
+    name: "Plan Job"
+    needs: tfsec
+    strategy:
+      matrix:
+        stage: [dev]
+    runs-on: ubuntu-latest
+    concurrency: ${{ matrix.stage }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: jungwinter/split@v2
+        id: split
+        with:
+          msg: ${{ github.repository }}
+          separator: "/"
+
+      - uses: "./.github/actions/azure-backend"
+        with:
+          AZURE_SP: ${{ secrets.AZURE_SP }}
+          RESOURCE_GROUP_NAME: "acr-${{ matrix.stage }}-rg"
+          RESOURCE_GROUP_LOCATION: "eastus"
+          TAGS: '"UseCase=Terraform" "Stage=${{ github.job }}" "Deployed=GitHub Actions" Repository=${{ steps.split.outputs._1 }} "RunNumber=${{ github.run_number }}"'
+          STORAGE_ACCOUNT_NAME: "stacacr${{ matrix.stage }}"
+
+      - uses: "./.github/actions/terraform-plan"
+        with:
+          WORKING_DIR: "./terraform-live/acr"
+          AZURE_SP: ${{ secrets.AZURE_SP }}
+          RESOURCE_GROUP_NAME: "acr-${{ matrix.stage }}-rg"
+          STORAGE_ACCOUNT_NAME: "stacacr${{ matrix.stage }}"
+          CONTAINER_NAME: "states"
+          STATE_FILE: "acr.tfstate"
+          STAGE: "${{ matrix.stage }}"
+
+  # apply:
+  #   name: "Apply Job"
+  #   needs: plan
+  #   strategy:
+  #     matrix:
+  #       stage: [dev]
+  #   runs-on: ubuntu-latest
+  #   environment: ${{ matrix.stage }}
+  #   defaults:
+  #    run:
+  #      shell: bash
+  #      # We keep Terraform files in the terraform directory.
+  #      working-directory: ./terraform-live
+  #   steps:
+  #   - uses: actions/checkout@v3
+
+  #   - uses: "./.github/actions/terraform-apply"
+  #     with:
+  #       WORKING_DIR: "."
+  #       AZURE_SP: ${{ secrets.AZURE_SP }}
+  #       STORAGE_ACCOUNT_NAME: "stacpolicyascode${{ matrix.stage }}"
+  #       STAGE: "${{ matrix.stage }}"
