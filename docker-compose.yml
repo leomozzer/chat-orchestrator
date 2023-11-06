@@ -23,8 +23,8 @@ services:
       - /usr/app/node_modules
     ports:
       - "80:80"
-    depends_on:
-      - mongodb
+    # depends_on:
+    #   - mongodb
     environment:
       MONGODB_HOST: ''
       MONGO_INITDB_DATABASE: mydb
