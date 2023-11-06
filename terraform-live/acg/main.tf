@@ -123,7 +123,6 @@ resource "azurerm_container_group" "backend" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location # Choose your desired Azure region
   os_type             = "Linux"
-  ip_address_type     = "public"
 
   image_registry_credential {
     username = data.azurerm_container_registry.acr.admin_username
