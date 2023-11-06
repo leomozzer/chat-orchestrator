@@ -28,6 +28,7 @@ services:
       - nestjs-network
     environment:
       #MONGODB_URI: mongodb://root:example@mongodb:27017/mydb
+      MONGODB_HOST: 'mongodb'
       MONGO_INITDB_DATABASE: mydb
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example

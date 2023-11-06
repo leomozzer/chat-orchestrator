@@ -21,9 +21,10 @@ locals {
 }
 
 locals {
-  resource_group_name    = "rg-${local.region_name_standardize[var.location]}-${var.app_name}-${var.environment}"
-  pip_name               = "pip-${local.region_name_standardize[var.location]}-${var.app_name}-${var.environment}"
-  vnet_name              = "vnet-${local.region_name_standardize[var.location]}-${var.app_name}-${var.environment}"
-  private_endpoint_mongo = "private-endpoint-mongo-${var.environment}"
-  snet_name              = "snet-mongo-${var.environment}"
+  resource_group_name         = "rg-${local.region_name_standardize[var.location]}-${var.app_name}-${var.environment}"
+  pip_name                    = "pip-${local.region_name_standardize[var.location]}-${var.app_name}-${var.environment}"
+  vnet_name                   = "vnet-${local.region_name_standardize[var.location]}-${var.app_name}-${var.environment}"
+  private_endpoint_mongo      = "private-endpoint-mongo-${var.environment}"
+  snet_name                   = "snet-${var.app_name}-${var.environment}"
+  network_security_group_name = "sng-${local.region_name_standardize[var.location]}-${var.app_name}-${var.environment}"
 }

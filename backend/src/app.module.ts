@@ -15,7 +15,7 @@ import { Room, SocketUsers } from './rooms/rooms.entity';
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       'type': 'mongodb',
-      'host': '20.232.234.152',
+      'host': process.env.MONGODB_HOST,
       'port': 27017,
       'database': process.env.MONGO_INITDB_DATABASE,
       'entities': [User, Room, SocketUsers],

@@ -28,13 +28,71 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+resource "azurerm_network_security_group" "nsg" {
+  name                = local.network_security_group_name
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  security_rule {
+    name              = "to-internet"
+    priority          = 700
+    direction         = "Outbound"
+    access            = "Allow"
+    protocol          = "Tcp"
+    source_port_range = "*"
+
+    destination_port_ranges    = [80, 443, 445]
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "DenyAllOutBound-Override"
+    priority                   = 1000
+    direction                  = "Outbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "DenyAllInBound-Override"
+    priority                   = 1000
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_network_profile" "container_group_profile" {
+  name                = "acg-profile"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  container_network_interface {
+    name = "acg-nic"
+
+    ip_configuration {
+      name      = "aciipconfig"
+      subnet_id = azurerm_subnet.subnet.id
+    }
+  }
+}
+
 resource "azurerm_container_group" "mongodb" {
   name                = "mongodb-container"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location # Choose your desired Azure region
   os_type             = "Linux"
   ip_address_type     = "Private"
-  subnet_ids          = azurerm_subnet.subnet.id
+  network_profile_id  = azurerm_network_profile.container_group_profile.id
 
   container {
     name   = "mongodb"
@@ -55,34 +113,90 @@ resource "azurerm_container_group" "mongodb" {
   }
 
   tags = {
-    environment = "development"
+    environment = var.environment
   }
 
 }
 
-# resource "azurerm_private_endpoint" "mongo" {
-#   name                = local.private_endpoint_mongo
-#   location            = var.location
-#   resource_group_name = azurerm_resource_group.rg.name
-#   subnet_id           = azurerm_subnet.subnet.id
+resource "azurerm_container_group" "backend" {
+  name                = "backend-container"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location # Choose your desired Azure region
+  os_type             = "Linux"
+  ip_address_type     = "public"
 
-#   private_service_connection {
-#     name                           = "mongo-connection"
-#     private_connection_resource_id = azurerm_container_group.mongodb.id
-#     is_manual_connection           = false
-#   }
-# }
+  image_registry_credential {
+    username = data.azurerm_container_registry.acr.admin_username
+    password = data.azurerm_container_registry.acr.admin_password
+    server   = data.azurerm_container_registry.acr.login_server
+  }
 
-# resource "azurerm_network_security_rule" "network_security_rule" {
-#   name                         = var.name
-#   resource_group_name          = var.resource_group_name
-#   network_security_group_name  = var.network_security_group_name
-#   priority                     = var.priority
-#   direction                    = var.direction
-#   access                       = var.access
-#   protocol                     = var.protocol
-#   source_port_range            = var.source_port_range
-#   destination_port_ranges      = var.destination_port_ranges
-#   source_address_prefixes      = var.source_address_prefixes
-#   destination_address_prefixes = var.destination_address_prefixes
+  container {
+    name   = "backend"
+    image  = "${data.azurerm_container_registry.acr.login_server}/backend:latest"
+    cpu    = "1.0"
+    memory = "2.0"
+
+    environment_variables = {
+      MONGODB_HOST                 = azurerm_container_group.mongodb.ip_address
+      MONGO_INITDB_DATABASE        = "mydb"
+      MONGO_INITDB_ROOT_USERNAME   = "root"
+      MONGO_INITDB_ROOT_PASSWORD   = "example"
+      NODE_ENV                     = "development"
+      JWT_TOKEN                    = "ABC123456"
+      JWT_TOKEN_EXPIRATION_SECONDS = "144000s"
+    }
+
+    ports {
+      port     = 3000
+      protocol = "TCP"
+    }
+  }
+
+  tags = {
+    environment = var.environment
+  }
+
+}
+
+resource "azurerm_network_security_rule" "backend_to_mongodb" {
+  depends_on                  = [azurerm_container_group.backend, azurerm_container_group.mongodb]
+  name                        = "rule-backend-to-mongodb"
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = azurerm_network_security_group.nsg.name
+  protocol                    = "Tcp"
+  priority                    = 900
+  direction                   = "Inbound"
+  access                      = "Allow"
+  destination_port_range      = 27017
+  source_address_prefix       = azurerm_container_group.backend.ip_address
+  destination_address_prefix  = azurerm_container_group.mongodb.ip_address
+}
+
+resource "azurerm_network_security_rule" "frontend_to_backend_inbound" {
+  depends_on                  = [azurerm_container_group.backend]
+  name                        = "rule-frontend-to-backend"
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = azurerm_network_security_group.nsg.name
+  protocol                    = "Tcp"
+  priority                    = 800
+  direction                   = "Inbound"
+  access                      = "Allow"
+  destination_port_range      = 3000
+  source_address_prefix       = "*" #add later the container group from frontend
+  destination_address_prefix  = azurerm_container_group.backend.ip_address
+}
+
+# resource "azurerm_network_security_rule" "internet_to_frontend_inbound" {
+#   depends_on                  = [azurerm_container_group.backend]
+#   name                        = "rule-internet-to-frontend"
+#   resource_group_name         = azurerm_resource_group.rg.name
+#   network_security_group_name = azurerm_network_security_group.nsg.name
+#   protocol                    = "Tcp"
+#   priority                    = 800
+#   direction                   = "Inbound"
+#   access                      = "Allow"
+#   destination_port_ranges      = [80, 443, 445]
+#   source_address_prefix       = "*"
+#   destination_address_prefix  = azurerm_container_group.backend.ip_address #add later the container group from frontend
 # }
