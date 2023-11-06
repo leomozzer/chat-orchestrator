@@ -147,7 +147,7 @@ resource "azurerm_container_group" "backend" {
       JWT_TOKEN_EXPIRATION_SECONDS = "144000s"
     }
 
-    commands = ["npm", "run", "start:dev"]
+    commands = ["npm", "run", "start:prod"]
 
     ports {
       port     = 80
