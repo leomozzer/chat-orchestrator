@@ -148,7 +148,7 @@ resource "azurerm_container_group" "backend" {
     }
 
     ports {
-      port     = 3000
+      port     = 80
       protocol = "TCP"
     }
   }
@@ -182,7 +182,7 @@ resource "azurerm_network_security_rule" "frontend_to_backend_inbound" {
   priority                    = 800
   direction                   = "Inbound"
   access                      = "Allow"
-  destination_port_range      = 3000
+  destination_port_range      = 80
   source_address_prefix       = "*" #add later the container group from frontend
   destination_address_prefix  = azurerm_container_group.backend.ip_address
 }
@@ -193,7 +193,7 @@ resource "azurerm_network_security_rule" "frontend_to_backend_inbound" {
 #   resource_group_name         = azurerm_resource_group.rg.name
 #   network_security_group_name = azurerm_network_security_group.nsg.name
 #   protocol                    = "Tcp"
-#   priority                    = 800
+#   priority                    = 700
 #   direction                   = "Inbound"
 #   access                      = "Allow"
 #   destination_port_ranges      = [80, 443, 445]
