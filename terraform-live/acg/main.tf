@@ -12,11 +12,29 @@ resource "azurerm_resource_group" "rg" {
 #   sku                 = var.sku
 # }
 
+
+resource "azurerm_virtual_network" "vnet" {
+  name                = local.vnet_name
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+  address_space       = ["10.0.0.0/16"]
+  dns_servers         = ["10.0.0.4", "10.0.0.5"]
+}
+
+resource "azurerm_subnet" "subnet" {
+  name                 = local.snet_name
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
 resource "azurerm_container_group" "mongodb" {
   name                = "mongodb-container"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location # Choose your desired Azure region
   os_type             = "Linux"
+  ip_address_type     = "Private"
+  subnet_ids          = azurerm_subnet.subnet.id
 
   container {
     name   = "mongodb"
@@ -36,30 +54,10 @@ resource "azurerm_container_group" "mongodb" {
     }
   }
 
-  # diagnostics {
-  #   log_analytics {
-  #     workspace_id  = data.azurerm_log_analytics_workspace.law.workspace_id
-  #     workspace_key = data.azurerm_log_analytics_workspace.law.primary_shared_key
-  #   }
-  # }
   tags = {
     environment = "development"
   }
-}
 
-resource "azurerm_virtual_network" "vnet" {
-  name                = local.vnet_name
-  location            = var.location
-  resource_group_name = azurerm_resource_group.rg.name
-  address_space       = ["10.0.0.0/16"]
-  dns_servers         = ["10.0.0.4", "10.0.0.5"]
-}
-
-resource "azurerm_subnet" "subnet" {
-  name                 = local.snet_name
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
 }
 
 # resource "azurerm_private_endpoint" "mongo" {
