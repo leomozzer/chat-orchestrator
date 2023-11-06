@@ -145,6 +145,7 @@ resource "azurerm_container_group" "backend" {
       NODE_ENV                     = "development"
       JWT_TOKEN                    = "ABC123456"
       JWT_TOKEN_EXPIRATION_SECONDS = "144000s"
+      APP_PORT                     = 80
     }
 
     commands = ["npm", "run", "start:prod"]
