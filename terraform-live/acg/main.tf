@@ -177,6 +177,7 @@ resource "azurerm_network_security_rule" "backend_to_mongodb" {
   priority                    = 900
   direction                   = "Inbound"
   access                      = "Allow"
+  source_port_ranges          = [80, 443, 445]
   destination_port_range      = 27017
   source_address_prefix       = azurerm_container_group.backend.ip_address
   destination_address_prefix  = azurerm_container_group.mongodb.ip_address
@@ -191,8 +192,8 @@ resource "azurerm_network_security_rule" "frontend_to_backend_inbound" {
   priority                    = 800
   direction                   = "Inbound"
   access                      = "Allow"
-  destination_port_range      = 80
   source_address_prefix       = "*" #add later the container group from frontend
+  destination_port_range      = 80
   destination_address_prefix  = azurerm_container_group.backend.ip_address
 }
 
