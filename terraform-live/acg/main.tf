@@ -21,11 +21,25 @@ resource "azurerm_virtual_network" "vnet" {
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
 }
 
-resource "azurerm_subnet" "subnet" {
+resource "azurerm_subnet" "mongodbsubnet" {
   name                 = local.snet_name
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "backendsubnet" {
+  name                 = local.snet_name
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.2.0/24"]
   delegation {
     name = "delegation"
     service_delegation {
@@ -78,12 +92,17 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 
-resource "azurerm_subnet_network_security_group_association" "subnet_network_security_group_association" {
-  subnet_id                 = azurerm_subnet.subnet.id
+resource "azurerm_subnet_network_security_group_association" "mongodbsubnet_network_security_group_association" {
+  subnet_id                 = azurerm_subnet.mongodbsubnet.id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
-resource "azurerm_network_profile" "container_group_profile" {
+resource "azurerm_subnet_network_security_group_association" "backendsubnet_network_security_group_association" {
+  subnet_id                 = azurerm_subnet.backendsubnet.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
+}
+
+resource "azurerm_network_profile" "mongodb_container_group_profile" {
   name                = "acg-profile"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -93,7 +112,22 @@ resource "azurerm_network_profile" "container_group_profile" {
 
     ip_configuration {
       name      = "aciipconfig"
-      subnet_id = azurerm_subnet.subnet.id
+      subnet_id = azurerm_subnet.mongodbsubnet.id
+    }
+  }
+}
+
+resource "azurerm_network_profile" "backend_container_group_profile" {
+  name                = "acg-profile"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  container_network_interface {
+    name = "acg-nic"
+
+    ip_configuration {
+      name      = "aciipconfig"
+      subnet_id = azurerm_subnet.backendsubnet.id
     }
   }
 }
@@ -104,7 +138,7 @@ resource "azurerm_container_group" "mongodb" {
   location            = var.location # Choose your desired Azure region
   os_type             = "Linux"
   ip_address_type     = "Private"
-  network_profile_id  = azurerm_network_profile.container_group_profile.id
+  network_profile_id  = azurerm_network_profile.mongodb_container_group_profile.id
 
   container {
     name   = "mongodb"
@@ -129,14 +163,14 @@ resource "azurerm_container_group" "mongodb" {
   }
 
 }
-
+#https://learn.microsoft.com/en-us/azure/container-instances/container-instances-application-gateway
 resource "azurerm_container_group" "backend" {
   name                = "backend-container"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location # Choose your desired Azure region
   os_type             = "Linux"
-  # ip_address_type     = "Private"
-  # network_profile_id  = azurerm_network_profile.container_group_profile.id
+  ip_address_type     = "Private"
+  network_profile_id  = azurerm_network_profile.backend_container_group_profile.id
 
   # image_registry_credential {
   #   username = data.azurerm_container_registry.acr.admin_username
