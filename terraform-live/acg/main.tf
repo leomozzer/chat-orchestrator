@@ -78,6 +78,11 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 
+resource "azurerm_subnet_network_security_group_association" "subnet_network_security_group_association" {
+  subnet_id                 = azurerm_subnet.subnet.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
+}
+
 resource "azurerm_network_profile" "container_group_profile" {
   name                = "acg-profile"
   location            = var.location
@@ -177,25 +182,26 @@ resource "azurerm_network_security_rule" "backend_to_mongodb" {
   priority                    = 900
   direction                   = "Inbound"
   access                      = "Allow"
-  source_port_ranges          = [80, 443, 445]
+  source_port_range           = "*"
   destination_port_range      = 27017
   source_address_prefix       = azurerm_container_group.backend.ip_address
   destination_address_prefix  = azurerm_container_group.mongodb.ip_address
 }
 
-resource "azurerm_network_security_rule" "frontend_to_backend_inbound" {
-  depends_on                  = [azurerm_container_group.backend]
-  name                        = "rule-frontend-to-backend"
-  resource_group_name         = azurerm_resource_group.rg.name
-  network_security_group_name = azurerm_network_security_group.nsg.name
-  protocol                    = "Tcp"
-  priority                    = 800
-  direction                   = "Inbound"
-  access                      = "Allow"
-  source_address_prefix       = "*" #add later the container group from frontend
-  destination_port_range      = 80
-  destination_address_prefix  = azurerm_container_group.backend.ip_address
-}
+# resource "azurerm_network_security_rule" "frontend_to_backend_inbound" {
+#   depends_on                  = [azurerm_container_group.backend]
+#   name                        = "rule-frontend-to-backend"
+#   resource_group_name         = azurerm_resource_group.rg.name
+#   network_security_group_name = azurerm_network_security_group.nsg.name
+#   protocol                    = "Tcp"
+#   priority                    = 800
+#   direction                   = "Inbound"
+#   access                      = "Allow"
+#   source_address_prefix       = "*" #add later the container group from frontend
+#   source_port_ranges          = [80, 443, 445]
+#   destination_port_range      = 3000
+#   destination_address_prefix  = azurerm_container_group.backend.ip_address
+# }
 
 # resource "azurerm_network_security_rule" "internet_to_frontend_inbound" {
 #   depends_on                  = [azurerm_container_group.backend]
