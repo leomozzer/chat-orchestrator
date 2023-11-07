@@ -104,7 +104,7 @@ resource "azurerm_container_group" "mongodb" {
   location            = var.location # Choose your desired Azure region
   os_type             = "Linux"
   ip_address_type     = "Private"
-  subnet_ids          = azurerm_subnet.subnet.id
+  network_profile_id  = azurerm_network_profile.container_group_profile.id
 
   container {
     name   = "mongodb"
