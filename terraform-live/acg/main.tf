@@ -172,35 +172,47 @@ resource "azurerm_container_group" "backend" {
   ip_address_type     = "Private"
   network_profile_id  = azurerm_network_profile.backend_container_group_profile.id
 
-  image_registry_credential {
-    username = data.azurerm_container_registry.acr.admin_username
-    password = data.azurerm_container_registry.acr.admin_password
-    server   = data.azurerm_container_registry.acr.login_server
-  }
   container {
-    name   = "backend"
-    image  = "${data.azurerm_container_registry.acr.login_server}/backend:latest"
-    cpu    = "1.0"
-    memory = "2.0"
-
-    environment_variables = {
-      MONGODB_HOST                 = azurerm_container_group.mongodb.ip_address
-      MONGO_INITDB_DATABASE        = "mydb"
-      MONGO_INITDB_ROOT_USERNAME   = "root"
-      MONGO_INITDB_ROOT_PASSWORD   = "example"
-      NODE_ENV                     = "development"
-      JWT_TOKEN                    = "ABC123456"
-      JWT_TOKEN_EXPIRATION_SECONDS = "144000s"
-      APP_PORT                     = 80
-    }
-
-    commands = ["npm", "run", "start:prod"]
+    name   = "nginx"
+    image  = "nginx:latest"
+    cpu    = "0.5"
+    memory = "1.5"
 
     ports {
       port     = 80
       protocol = "TCP"
     }
   }
+
+  # image_registry_credential {
+  #   username = data.azurerm_container_registry.acr.admin_username
+  #   password = data.azurerm_container_registry.acr.admin_password
+  #   server   = data.azurerm_container_registry.acr.login_server
+  # }
+  # container {
+  #   name   = "backend"
+  #   image  = "${data.azurerm_container_registry.acr.login_server}/backend:latest"
+  #   cpu    = "1.0"
+  #   memory = "2.0"
+
+  #   environment_variables = {
+  #     MONGODB_HOST                 = azurerm_container_group.mongodb.ip_address
+  #     MONGO_INITDB_DATABASE        = "mydb"
+  #     MONGO_INITDB_ROOT_USERNAME   = "root"
+  #     MONGO_INITDB_ROOT_PASSWORD   = "example"
+  #     NODE_ENV                     = "development"
+  #     JWT_TOKEN                    = "ABC123456"
+  #     JWT_TOKEN_EXPIRATION_SECONDS = "144000s"
+  #     APP_PORT                     = 80
+  #   }
+
+  #   commands = ["npm", "run", "start:prod"]
+
+  #   ports {
+  #     port     = 80
+  #     protocol = "TCP"
+  #   }
+  # }
 
   tags = {
     environment = var.environment
