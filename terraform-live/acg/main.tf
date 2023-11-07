@@ -49,6 +49,20 @@ resource "azurerm_subnet" "backendsubnet" {
   }
 }
 
+resource "azurerm_subnet" "frontendsubnet" {
+  name                 = local.backend_snet_name
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.3.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
+    }
+  }
+}
+
 resource "azurerm_network_security_group" "nsg" {
   name                = local.network_security_group_name
   location            = var.location
@@ -102,6 +116,11 @@ resource "azurerm_subnet_network_security_group_association" "backendsubnet_netw
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
+resource "azurerm_subnet_network_security_group_association" "frontendsubnet_network_security_group_association" {
+  subnet_id                 = azurerm_subnet.frontendsubnet.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
+}
+
 resource "azurerm_network_profile" "mongodb_container_group_profile" {
   name                = "acg-mongo"
   location            = var.location
@@ -132,13 +151,28 @@ resource "azurerm_network_profile" "backend_container_group_profile" {
   }
 }
 
+resource "azurerm_network_profile" "frontend_container_group_profile" {
+  name                = "acg-frontend"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  container_network_interface {
+    name = "acg-nic"
+
+    ip_configuration {
+      name      = "aciipconfig"
+      subnet_id = azurerm_subnet.frontendsubnet.id
+    }
+  }
+}
+
 resource "azurerm_container_group" "mongodb" {
   name                = "mongodb-container"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location # Choose your desired Azure region
   os_type             = "Linux"
-  ip_address_type     = "Private"
-  network_profile_id  = azurerm_network_profile.mongodb_container_group_profile.id
+  # ip_address_type     = "Private"
+  # network_profile_id  = azurerm_network_profile.mongodb_container_group_profile.id
 
   container {
     name   = "mongodb"
@@ -169,56 +203,100 @@ resource "azurerm_container_group" "backend" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location # Choose your desired Azure region
   os_type             = "Linux"
-  ip_address_type     = "Private"
-  network_profile_id  = azurerm_network_profile.backend_container_group_profile.id
+  # ip_address_type     = "Private"
+  # network_profile_id  = azurerm_network_profile.backend_container_group_profile.id
 
+  image_registry_credential {
+    username = data.azurerm_container_registry.acr.admin_username
+    password = data.azurerm_container_registry.acr.admin_password
+    server   = data.azurerm_container_registry.acr.login_server
+  }
   container {
-    name   = "nginx"
-    image  = "nginx:latest"
-    cpu    = "0.5"
-    memory = "1.5"
+    name   = "backend"
+    image  = "${data.azurerm_container_registry.acr.login_server}/backend:latest"
+    cpu    = "1.0"
+    memory = "2.0"
+
+    environment_variables = {
+      MONGODB_HOST                 = azurerm_container_group.mongodb.ip_address
+      MONGO_INITDB_DATABASE        = "mydb"
+      MONGO_INITDB_ROOT_USERNAME   = "root"
+      MONGO_INITDB_ROOT_PASSWORD   = "example"
+      NODE_ENV                     = var.environment
+      JWT_TOKEN                    = "ABC123456"
+      JWT_TOKEN_EXPIRATION_SECONDS = "144000s"
+      APP_PORT                     = 3000
+    }
+
+    commands = ["npm", "run", "start:prod"]
 
     ports {
-      port     = 80
+      port     = 3000
       protocol = "TCP"
     }
   }
-
-  # image_registry_credential {
-  #   username = data.azurerm_container_registry.acr.admin_username
-  #   password = data.azurerm_container_registry.acr.admin_password
-  #   server   = data.azurerm_container_registry.acr.login_server
-  # }
-  # container {
-  #   name   = "backend"
-  #   image  = "${data.azurerm_container_registry.acr.login_server}/backend:latest"
-  #   cpu    = "1.0"
-  #   memory = "2.0"
-
-  #   environment_variables = {
-  #     MONGODB_HOST                 = azurerm_container_group.mongodb.ip_address
-  #     MONGO_INITDB_DATABASE        = "mydb"
-  #     MONGO_INITDB_ROOT_USERNAME   = "root"
-  #     MONGO_INITDB_ROOT_PASSWORD   = "example"
-  #     NODE_ENV                     = "development"
-  #     JWT_TOKEN                    = "ABC123456"
-  #     JWT_TOKEN_EXPIRATION_SECONDS = "144000s"
-  #     APP_PORT                     = 80
-  #   }
-
-  #   commands = ["npm", "run", "start:prod"]
-
-  #   ports {
-  #     port     = 80
-  #     protocol = "TCP"
-  #   }
-  # }
 
   tags = {
     environment = var.environment
   }
 
 }
+
+# resource "azurerm_container_group" "frontend" {
+#   name                = "frontend-container"
+#   resource_group_name = azurerm_resource_group.rg.name
+#   location            = var.location # Choose your desired Azure region
+#   os_type             = "Linux"
+#   # ip_address_type     = "Private"
+#   # network_profile_id  = azurerm_network_profile.frontend_container_group_profile.id
+
+#   container {
+#     name   = "nginx"
+#     image  = "nginx:latest"
+#     cpu    = "0.5"
+#     memory = "1.5"
+
+#     ports {
+#       port     = 80
+#       protocol = "TCP"
+#     }
+#   }
+
+#   # image_registry_credential {
+#   #   username = data.azurerm_container_registry.acr.admin_username
+#   #   password = data.azurerm_container_registry.acr.admin_password
+#   #   server   = data.azurerm_container_registry.acr.login_server
+#   # }
+#   # container {
+#   #   name   = "backend"
+#   #   image  = "${data.azurerm_container_registry.acr.login_server}/backend:latest"
+#   #   cpu    = "1.0"
+#   #   memory = "2.0"
+
+#   #   environment_variables = {
+#   #     MONGODB_HOST                 = azurerm_container_group.mongodb.ip_address
+#   #     MONGO_INITDB_DATABASE        = "mydb"
+#   #     MONGO_INITDB_ROOT_USERNAME   = "root"
+#   #     MONGO_INITDB_ROOT_PASSWORD   = "example"
+#   #     NODE_ENV                     = "development"
+#   #     JWT_TOKEN                    = "ABC123456"
+#   #     JWT_TOKEN_EXPIRATION_SECONDS = "144000s"
+#   #     APP_PORT                     = 80
+#   #   }
+
+#   #   commands = ["npm", "run", "start:prod"]
+
+#   #   ports {
+#   #     port     = 80
+#   #     protocol = "TCP"
+#   #   }
+#   # }
+
+#   tags = {
+#     environment = var.environment
+#   }
+
+# }
 
 resource "azurerm_network_security_rule" "backend_to_mongodb" {
   depends_on                  = [azurerm_container_group.backend, azurerm_container_group.mongodb]

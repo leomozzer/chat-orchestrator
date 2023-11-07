@@ -25,8 +25,8 @@ locals {
   pip_name                    = "pip-${local.region_name_standardize[var.location]}-${var.app_name}-${var.environment}"
   vnet_name                   = "vnet-${local.region_name_standardize[var.location]}-${var.app_name}-${var.environment}"
   private_endpoint_mongo      = "private-endpoint-mongo-${var.environment}"
-  snet_name                   = "snet-${var.app_name}-${var.environment}"
   mongodb_snet_name           = "snet-mongodb-${var.app_name}-${var.environment}"
   backend_snet_name           = "snet-backend-${var.app_name}-${var.environment}"
-  network_security_group_name = "sng-${local.region_name_standardize[var.location]}-${var.app_name}-${var.environment}"
+  frontend_snet_name          = "snet-frontend-${var.app_name}-${var.environment}"
+  network_security_group_name = "nsg-${local.region_name_standardize[var.location]}-${var.app_name}-${var.environment}"
 }
