@@ -145,23 +145,30 @@ resource "azurerm_container_group" "backend" {
   }
 
   container {
-    name   = "backend"
-    image  = "${data.azurerm_container_registry.acr.login_server}/backend:latest"
-    cpu    = "1.0"
+    name = "nginx"
+    image = "nginx:lastest"
+    cpu = "1.0"
     memory = "2.0"
+  }
 
-    environment_variables = {
-      MONGODB_HOST                 = azurerm_container_group.mongodb.ip_address
-      MONGO_INITDB_DATABASE        = "mydb"
-      MONGO_INITDB_ROOT_USERNAME   = "root"
-      MONGO_INITDB_ROOT_PASSWORD   = "example"
-      NODE_ENV                     = "development"
-      JWT_TOKEN                    = "ABC123456"
-      JWT_TOKEN_EXPIRATION_SECONDS = "144000s"
-      APP_PORT                     = 80
-    }
+  # container {
+  #   name   = "backend"
+  #   image  = "${data.azurerm_container_registry.acr.login_server}/backend:latest"
+  #   cpu    = "1.0"
+  #   memory = "2.0"
 
-    commands = ["npm", "run", "start:prod"]
+  #   environment_variables = {
+  #     MONGODB_HOST                 = azurerm_container_group.mongodb.ip_address
+  #     MONGO_INITDB_DATABASE        = "mydb"
+  #     MONGO_INITDB_ROOT_USERNAME   = "root"
+  #     MONGO_INITDB_ROOT_PASSWORD   = "example"
+  #     NODE_ENV                     = "development"
+  #     JWT_TOKEN                    = "ABC123456"
+  #     JWT_TOKEN_EXPIRATION_SECONDS = "144000s"
+  #     APP_PORT                     = 80
+  #   }
+
+  #   commands = ["npm", "run", "start:prod"]
 
     ports {
       port     = 80
