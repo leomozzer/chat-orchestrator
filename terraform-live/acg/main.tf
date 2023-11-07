@@ -146,7 +146,7 @@ resource "azurerm_container_group" "backend" {
 
   container {
     name   = "nginx"
-    image  = "nginx:lastest"
+    image  = "nginx:latest"
     cpu    = "1.0"
     memory = "2.0"
 
