@@ -103,7 +103,7 @@ resource "azurerm_subnet_network_security_group_association" "backendsubnet_netw
 }
 
 resource "azurerm_network_profile" "mongodb_container_group_profile" {
-  name                = "acg-profile"
+  name                = "acg-mongo"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -118,7 +118,7 @@ resource "azurerm_network_profile" "mongodb_container_group_profile" {
 }
 
 resource "azurerm_network_profile" "backend_container_group_profile" {
-  name                = "acg-profile"
+  name                = "acg-backend"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
 
