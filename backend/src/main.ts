@@ -5,6 +5,7 @@ async function bootstrap() {
   app.enableCors({
     'origin': '*'
   })
+  console.log('MONGODB_HOST => ', process.env.MONGODB_HOST)
   await app.listen(process.env.APP_PORT);
 }
 bootstrap();
