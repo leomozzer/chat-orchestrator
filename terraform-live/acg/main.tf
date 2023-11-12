@@ -21,39 +21,11 @@ resource "azurerm_virtual_network" "vnet" {
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
 }
 
-resource "azurerm_subnet" "mongodbsubnet" {
+resource "azurerm_subnet" "subnet" {
   name                 = local.mongodb_snet_name
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
-  delegation {
-    name = "delegation"
-    service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
-    }
-  }
-}
-
-resource "azurerm_subnet" "backendsubnet" {
-  name                 = local.backend_snet_name
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.2.0/24"]
-  delegation {
-    name = "delegation"
-    service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
-    }
-  }
-}
-
-resource "azurerm_subnet" "frontendsubnet" {
-  name                 = local.backend_snet_name
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.3.0/24"]
   delegation {
     name = "delegation"
     service_delegation {
@@ -106,18 +78,8 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 
-resource "azurerm_subnet_network_security_group_association" "mongodbsubnet_network_security_group_association" {
-  subnet_id                 = azurerm_subnet.mongodbsubnet.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "backendsubnet_network_security_group_association" {
-  subnet_id                 = azurerm_subnet.backendsubnet.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "frontendsubnet_network_security_group_association" {
-  subnet_id                 = azurerm_subnet.frontendsubnet.id
+resource "azurerm_subnet_network_security_group_association" "network_security_group_association" {
+  subnet_id                 = azurerm_subnet.subnet.id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
@@ -131,7 +93,7 @@ resource "azurerm_network_profile" "mongodb_container_group_profile" {
 
     ip_configuration {
       name      = "aciipconfig"
-      subnet_id = azurerm_subnet.mongodbsubnet.id
+      subnet_id = azurerm_subnet.subnet.id
     }
   }
 }
@@ -146,7 +108,7 @@ resource "azurerm_network_profile" "backend_container_group_profile" {
 
     ip_configuration {
       name      = "aciipconfig"
-      subnet_id = azurerm_subnet.backendsubnet.id
+      subnet_id = azurerm_subnet.subnet.id
     }
   }
 }
@@ -161,7 +123,7 @@ resource "azurerm_network_profile" "frontend_container_group_profile" {
 
     ip_configuration {
       name      = "aciipconfig"
-      subnet_id = azurerm_subnet.frontendsubnet.id
+      subnet_id = azurerm_subnet.subnet.id
     }
   }
 }
