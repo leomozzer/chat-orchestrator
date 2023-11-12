@@ -260,19 +260,64 @@ resource "azurerm_container_group" "backend" {
 
 # }
 
-resource "azurerm_network_security_rule" "backend_to_mongodb" {
+resource "azurerm_network_security_rule" "inbound_backend_to_mongodb" {
   depends_on                  = [azurerm_container_group.backend, azurerm_container_group.mongodb]
-  name                        = "rule-backend-to-mongodb"
+  name                        = "inbound-backend-to-mongodb"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.nsg.name
-  protocol                    = "Tcp"
-  priority                    = 900
+  protocol                    = "*"
+  priority                    = 910
   direction                   = "Inbound"
   access                      = "Allow"
   source_port_range           = "*"
-  destination_port_range      = 27017
+  destination_port_range      = "*"
   source_address_prefix       = azurerm_container_group.backend.ip_address
   destination_address_prefix  = azurerm_container_group.mongodb.ip_address
+}
+
+resource "azurerm_network_security_rule" "inbound_mongodb_to_backend" {
+  depends_on                  = [azurerm_container_group.backend, azurerm_container_group.mongodb]
+  name                        = "inbound-mongodb-to-backend"
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = azurerm_network_security_group.nsg.name
+  protocol                    = "*"
+  priority                    = 920
+  direction                   = "Inbound"
+  access                      = "Allow"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = azurerm_container_group.mongodb.ip_address
+  destination_address_prefix  = azurerm_container_group.backend.ip_address
+}
+
+resource "azurerm_network_security_rule" "outbound_backend_to_mongodb" {
+  depends_on                  = [azurerm_container_group.backend, azurerm_container_group.mongodb]
+  name                        = "outbound-backend-to-mongodb"
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = azurerm_network_security_group.nsg.name
+  protocol                    = "*"
+  priority                    = 910
+  direction                   = "Outbound"
+  access                      = "Allow"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = azurerm_container_group.backend.ip_address
+  destination_address_prefix  = azurerm_container_group.mongodb.ip_address
+}
+
+resource "azurerm_network_security_rule" "outbound_mongodb_to_backend" {
+  depends_on                  = [azurerm_container_group.backend, azurerm_container_group.mongodb]
+  name                        = "outbound-mongodb-to-backend"
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = azurerm_network_security_group.nsg.name
+  protocol                    = "*"
+  priority                    = 920
+  direction                   = "Outbound"
+  access                      = "Allow"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = azurerm_container_group.mongodb.ip_address
+  destination_address_prefix  = azurerm_container_group.backend.ip_address
 }
 
 # resource "azurerm_network_security_rule" "frontend_to_backend_inbound" {
