@@ -133,8 +133,8 @@ resource "azurerm_container_group" "mongodb" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location # Choose your desired Azure region
   os_type             = "Linux"
-  # ip_address_type     = "Private"
-  # network_profile_id  = azurerm_network_profile.mongodb_container_group_profile.id
+  ip_address_type     = "Private"
+  network_profile_id  = azurerm_network_profile.mongodb_container_group_profile.id
 
   container {
     name   = "mongodb"
@@ -165,8 +165,8 @@ resource "azurerm_container_group" "backend" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location # Choose your desired Azure region
   os_type             = "Linux"
-  # ip_address_type     = "Private"
-  # network_profile_id  = azurerm_network_profile.backend_container_group_profile.id
+  ip_address_type     = "Private"
+  network_profile_id  = azurerm_network_profile.backend_container_group_profile.id
 
   image_registry_credential {
     username = data.azurerm_container_registry.acr.admin_username
@@ -190,7 +190,7 @@ resource "azurerm_container_group" "backend" {
       APP_PORT                     = 3000
     }
 
-    commands = ["npm", "run", "start:prod"]
+    #commands = ["npm", "run", "start:prod"]
 
     ports {
       port     = 3000

@@ -168,7 +168,7 @@
     </section> <!-- partial -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
     <script>
-        var url = 'http://localhost:3000';
+        var url = 'http://20.241.151.51:3000';
         var connected = false;
         let token = ""
         let socket;
@@ -221,16 +221,10 @@
             }).catch(error => {
                 console.log('Error: ', error)
             })
-            // Implement user registration logic here
-            // You may want to send the registration data to a server or store it locally
-            // After registration, you can show the room selection page similar to the login flow
-            // document.getElementById("registrationPage").style.display = "none";
-            // document.getElementById("roomPage").style.display = "block";
-            // document.getElementById("loggedInUsername").innerText = username;
         }
 
         function joinRoom() {
-            socket = io('http://localhost:3000/rooms', {
+            socket = io('http://20.241.151.51:3000/rooms', {
                 withCredentials: true,
                 transports: ['websocket'],
                 query: {
